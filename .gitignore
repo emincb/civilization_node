@@ -1,0 +1,34 @@
+# System Files
+.DS_Store
+*.log
+*.swp
+__pycache__/
+.env
+
+# Civilization Node Content (DO NOT COMMIT LARGE FILES)
+/library
+/incoming
+/opt/civilization
+*.zim
+*.iso
+*.pdf
+wikipedia/
+test_data/
+
+# Docker Local Data
+open-webui/
+ollama/
+kiwix/
+
+# Rust Build Artifacts
+target/
+**/*.rs.bk
+
+# Python
+venv/
+.pytest_cache/
+
+# Local Dev Scripts
+*.local.sh
+kiwix_tool_verified.py
+wget-log
