@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "civ_dedup",
+    "civ_validate"
+]
+resolver = "2"

@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: civ_ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - /opt/civilization/models:/root/.ollama
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    networks:
+      - civilization_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: civ_webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - /opt/civilization/openwebui:/app/backend/data
+      # Ensure PDFs and other large files can be accessed if needed, though usually uploaded via UI
+      - /opt/civilization/library/pdfs:/data/pdfs:ro 
+    environment:
+      - OLLAMA_BASE_URL=http://civ_ollama:11434
+    depends_on:
+      ollama:
+        condition: service_started
+    networks:
+      - civilization_net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  kiwix:
+    image: ghcr.io/kiwix/kiwix-serve:latest
+    container_name: civ_library
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /opt/civilization/library/zims:/data
+    command: "*.zim"
+    networks:
+      - civilization_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  civilization_net:
+    driver: bridge
