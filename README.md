@@ -5,6 +5,28 @@ This system gives you a fully autonomous AI that works **without the internet**.
 
 ---
 
+## 💻 System Requirements / Sistem Gereksinimleri
+
+### Operating System
+- **Linux** (Recommended): Ubuntu 22.04 LTS or newer.
+- **Windows**: Requires **WSL2** (Windows Subsystem for Linux) with Ubuntu installed.
+- **Mac**: Supported (Intel/Apple Silicon), but requires manual adjustment of some Docker paths.
+
+### Hardware Hardware
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| **RAM**   | 12 GB    | 16 GB+      |
+| **GPU**   | CPU Only (Slow) | NVIDIA GPU (6GB VRAM+) |
+| **Storage** | 100 GB | 1 TB SSD (For full library) |
+
+> **Note on Storage**: The code itself is small, but the **offline content** (ZIM files) is massive.
+> - `wikipedia_en_all_nopic`: ~50GB
+> - `stackoverflow`: ~80GB
+> - `ifixit`: ~2GB
+> *Ensure you have enough space in `/opt/civilization` (or your chosen path).*
+
+---
+
 ## 🛠️ Step 1: Install Prerequisites
 Before you start, open a terminal (CTRL+ALT+T) and run these checks.
 
