@@ -3,6 +3,8 @@
 
 This system gives you a fully autonomous AI that works **without the internet**. It connects a powerful LLM (brain) to a massive offline library of Wikipedia, Engineering, Medicine, and Repair manuals (knowledge).
 
+> **Keywords**: Offline AI, Collapse OS, Prepper Tech, Kiwix LLM, Survival Intelligence, Offline Wikipedia, Local LLM, Air-gapped AI.
+
 ---
 
 ## 💻 System Requirements / Sistem Gereksinimleri
@@ -58,6 +60,8 @@ You need two types of brains: one for smarts, one for reading documents.
 1. **Download the Unrestricted Model** (dolphin-llama3) - won't lecture you on safety:
    ```bash
    ollama pull dolphin-llama3
+   # Create the Custom Survival Model (Applies the Librarian personality)
+   ollama create survival-librarian -f Modelfile.survival
    ```
 2. **Download the Librarian** (nomic-embed-text) - organizes your PDF manuals:
    ```bash
@@ -106,7 +110,7 @@ You need the actual data (Wikipedia, iFixit, etc.). These files are big (100GB+)
 
 ## 🚀 Step 5: Use It
 1. **Open your Browser**: [http://localhost:3000](http://localhost:3000)
-2. **Select Model**: Choose `dolphin-llama3` from the top dropdown.
+2. **Select Model**: Choose `survival-librarian` from the top dropdown.
 3. **Connect the Tool** (Required for Wikipedia Access):
    - Go to **Workspace > Tools**.
    - Create a new tool named "Kiwix".
