@@ -49,15 +49,15 @@ class Tools:
         search_keyword = zim_map.get(context, context)
         
         # 2. Resolve to the EXACT Book ID from the Server
-        target_id = self._resolve_book_id(search_keyword)
+        target_id = _resolve_book_id(self.kiwix_host, search_keyword)
         
         # 3. Fallback: If specific library not found, default to Wikipedia main
         if not target_id and search_keyword != "wikipedia":
              print(f"DEBUG: Library for '{search_keyword}' not found, falling back to Wikipedia.")
-             target_id = self._resolve_book_id("wikipedia")
+             target_id = _resolve_book_id(self.kiwix_host, "wikipedia")
 
         if not target_id:
-            available = self._get_available_books()
+            available = _get_available_books(self.kiwix_host)
             return f"Error: No matching ZIM found for '{context}' or 'wikipedia'. Available: {available}"
 
         try:
@@ -127,39 +127,39 @@ class Tools:
         except Exception as e:
             return f"System Error: {e}"
 
-    def _resolve_book_id(self, partial_name: str) -> str:
-        print(f"DEBUG: Resolving book ID for '{partial_name}'")
-        try:
-            # Kiwix-serve returns an OPDS Atom feed (XML), not JSON
-            r = requests.get(f"{self.kiwix_host}/catalog/v2/entries", timeout=2)
-            if r.status_code != 200:
-                return None
-            
-            # Parse XML
-            soup = BeautifulSoup(r.content, 'xml')
-            
-            for entry in soup.find_all('entry'):
-                # Title often contains readable name: "Wikipedia English"
-                title = entry.find('title').text if entry.find('title') else ""
-                
-                if partial_name.lower() in title.lower():
-                    # Extract ID from the <link type="text/html" href="/content/ID">
-                    # We search for the link that points to the content root
-                    link = entry.find('link', type="text/html")
-                    if link and link.get('href'):
-                        # href is like "/content/wikipedia_en_all_nopic_2025-12"
-                        # We need just the ID part
-                        raw_id = link['href'].split('/content/')[-1]
-                        return raw_id
+def _resolve_book_id(host: str, partial_name: str) -> str:
+    print(f"DEBUG: Resolving book ID for '{partial_name}'")
+    try:
+        # Kiwix-serve returns an OPDS Atom feed (XML), not JSON
+        r = requests.get(f"{host}/catalog/v2/entries", timeout=2)
+        if r.status_code != 200:
             return None
-        except:
-            return None
+        
+        # Parse XML
+        soup = BeautifulSoup(r.content, 'xml')
+        
+        for entry in soup.find_all('entry'):
+            # Title often contains readable name: "Wikipedia English"
+            title = entry.find('title').text if entry.find('title') else ""
+            
+            if partial_name.lower() in title.lower():
+                # Extract ID from the <link type="text/html" href="/content/ID">
+                # We search for the link that points to the content root
+                link = entry.find('link', type="text/html")
+                if link and link.get('href'):
+                    # href is like "/content/wikipedia_en_all_nopic_2025-12"
+                    # We need just the ID part
+                    raw_id = link['href'].split('/content/')[-1]
+                    return raw_id
+        return None
+    except:
+        return None
 
-    def _get_available_books(self):
-        try:
-             r = requests.get(f"{self.kiwix_host}/catalog/v2/entries", timeout=1)
-             soup = BeautifulSoup(r.content, 'xml')
-             titles = [e.find('title').text for e in soup.find_all('entry') if e.find('title')]
-             return titles
-        except:
-             return "Unable to list (XML Parse Error)."
+def _get_available_books(host: str):
+    try:
+            r = requests.get(f"{host}/catalog/v2/entries", timeout=1)
+            soup = BeautifulSoup(r.content, 'xml')
+            titles = [e.find('title').text for e in soup.find_all('entry') if e.find('title')]
+            return titles
+    except:
+            return "Unable to list (XML Parse Error)."
