@@ -3,6 +3,8 @@
 
 > **"Rebuild civilization without the internet."**
 
+![Civilization Node Demo](assets/demo_screenshot.png)
+
 The **Civilization Node** is a self-contained, **offline AI system** designed for survivalists, preppers, and digital preservationists. It connects a powerful **Local LLM** (via **Ollama**) to a massive offline library of **Wikipedia, Engineering, Medicine, and Repair manuals** (via **Kiwix**).
 
 Unlike standard chatbots, this system is **air-gapped capable** and designed to run on consumer hardware, providing critical knowledge retrieval when the internet is down.
