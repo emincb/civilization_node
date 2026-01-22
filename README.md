@@ -1,9 +1,19 @@
 # Civilization Node 🌍
-**Offline Survival Intelligence System**
+**Offline Survival Intelligence System & Air-Gapped AI Knowledge Base**
 
-This system gives you a fully autonomous AI that works **without the internet**. It connects a powerful LLM (brain) to a massive offline library of Wikipedia, Engineering, Medicine, and Repair manuals (knowledge).
+> **"Rebuild civilization without the internet."**
 
-> **Keywords**: Offline AI, Collapse OS, Prepper Tech, Kiwix LLM, Survival Intelligence, Offline Wikipedia, Local LLM, Air-gapped AI.
+The **Civilization Node** is a self-contained, **offline AI system** designed for survivalists, preppers, and digital preservationists. It connects a powerful **Local LLM** (via **Ollama**) to a massive offline library of **Wikipedia, Engineering, Medicine, and Repair manuals** (via **Kiwix**).
+
+Unlike standard chatbots, this system is **air-gapped capable** and designed to run on consumer hardware, providing critical knowledge retrieval when the internet is down.
+
+**Key Features:**
+*   **Offline Wikipedia & iFixit**: Access terabytes of knowledge without a connection.
+*   **RAG (Retrieval Augmented Generation)**: The AI searches the offline library to answer questions accurately.
+*   **Privacy First**: Runs entirely locally on your machine.
+*   **Hardware Efficient**: Optimized for Linux/WSL2 with Docker.
+
+**Keywords**: `Offline AI`, `Collapse OS`, `Prepper Tech`, `Kiwix Integration`, `Survival Intelligence`, `Local LLM`, `Ollama`, `Self-Hosted`, `Digital Heritage`.
 
 ---
 
