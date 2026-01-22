@@ -4,4 +4,8 @@ echo "=== Content Acquisition Tool ==="
 echo "Repo: https://download.kiwix.org/zim/"
 echo ""
 
-python3 /home/emin/Documents/personal/civilization_node/download_content.py
+# Resolve Paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
+python3 "$REPO_ROOT/download_content.py"

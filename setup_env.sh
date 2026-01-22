@@ -2,17 +2,33 @@
 set -e
 
 # Civilization Node - Infrastructure Setup Script
-# Version 1.0
+# Version 1.1
+
+# Load Environment Variables
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Defaults
+CIV_ROOT="${CIV_ROOT:-/opt/civilization}"
+SKIP_GPU_CHECK="${SKIP_GPU_CHECK:-false}"
 
 echo "=== Civilization Node Pre-flight Checks ==="
+echo "Target Configuration:"
+echo "  Root Directory: $CIV_ROOT"
+echo "  Skip GPU Check: $SKIP_GPU_CHECK"
+echo ""
 
 # 1. Check for NVIDIA Driver / GPU
 echo "[*] Checking NVIDIA GPU environment..."
 if command -v nvidia-smi &> /dev/null; then
     echo "    [OK] nvidia-smi found."
     nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+elif [ "$SKIP_GPU_CHECK" = "true" ]; then
+    echo "    [WARN] nvidia-smi not found, but SKIP_GPU_CHECK is enabled. Proceeding for CPU-only mode."
 else
     echo "    [ERROR] nvidia-smi not found! Ensure NVIDIA drivers are installed."
+    echo "            To run on CPU or non-NVIDIA hardware, set SKIP_GPU_CHECK=true in .env"
     exit 1
 fi
 
@@ -35,15 +51,14 @@ else
 fi
 
 # 4. Filesystem Preparation
-BASE_DIR="/opt/civilization"
-echo "[*] Verifying/Creating directory structure at $BASE_DIR..."
+echo "[*] Verifying/Creating directory structure at $CIV_ROOT..."
 
 DIRS=(
-    "$BASE_DIR/library/zims"
-    "$BASE_DIR/library/pdfs"
-    "$BASE_DIR/models"
-    "$BASE_DIR/openwebui"
-    "$BASE_DIR/incoming"
+    "$CIV_ROOT/library/zims"
+    "$CIV_ROOT/library/pdfs"
+    "$CIV_ROOT/models"
+    "$CIV_ROOT/openwebui"
+    "$CIV_ROOT/incoming"
 )
 
 REQUIRED_SUDO=false
@@ -59,18 +74,23 @@ done
 
 if [ "$REQUIRED_SUDO" = true ]; then
     echo ""
-    echo "[!] Some directories need to be created. This requires SUDO privileges."
-    echo "[!] Please run the following command manually (or I can try to run it if you have sudo access configured):"
+    echo "[!] Some directories need to be created. This might require SUDO privileges depending on the location."
+    echo "[!] Target path: $CIV_ROOT"
     echo ""
-    echo "sudo mkdir -p $BASE_DIR/library/{zims,pdfs} $BASE_DIR/{models,openwebui,incoming}"
-    echo "sudo chown -R $USER:$USER $BASE_DIR"
-    echo ""
-    read -p "Do you want to attempt running these commands with sudo now? (y/n) " -n 1 -r
+    read -p "Do you want to attempt creating these directories now? (y/n) " -n 1 -r
     echo ""
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        sudo mkdir -p "$BASE_DIR/library/zims" "$BASE_DIR/library/pdfs" "$BASE_DIR/models" "$BASE_DIR/openwebui" "$BASE_DIR/incoming"
-        sudo chown -R "$USER":"$USER" "$BASE_DIR"
-        echo "    [OK] Directories created and ownership set to $USER."
+        # Check write permission on parent dir of CIV_ROOT
+        PARENT_DIR=$(dirname "$CIV_ROOT")
+        if [ -w "$PARENT_DIR" ]; then
+             mkdir -p "${DIRS[@]}"
+             echo "    [OK] Directories created."
+        else
+             echo "    [INFO] Sudo required for $CIV_ROOT creation."
+             sudo mkdir -p "${DIRS[@]}"
+             sudo chown -R "$USER":"$USER" "$CIV_ROOT"
+             echo "    [OK] Directories created with sudo and ownership set to $USER."
+        fi
     else
         echo "    [WARN] Skipping directory creation. Deployment may fail."
     fi

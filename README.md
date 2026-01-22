@@ -1,55 +1,202 @@
 # Civilization Node 🌍
+**Offline Survival Intelligence System**
 
-**A Self-Hosted, Offline-First Knowledge & AI Hub.**
+This system gives you a fully autonomous AI that works **without the internet**. It connects a powerful LLM (brain) to a massive offline library of Wikipedia, Engineering, Medicine, and Repair manuals (knowledge).
 
-The Civilization Node is a Dockerized system designed to provide access to the sum of human knowledge (Wikipedia, iFixit, Medical Databases) and advanced AI assistance (LLMs, RAG) in a completely offline environment. It is built to run on local hardware ("The Box") and serve users via a modern web interface.
+---
 
-## 🚀 Key Features
+## 🛠️ Step 1: Install Prerequisites
+Before you start, open a terminal (CTRL+ALT+T) and run these checks.
 
-*   **Offline Library Search**: Instantly query terabytes of ZIM archives (Wikipedia, StackOverflow, etc.) using `kiwix-serve`.
-*   **AI Access**: Run local LLMs (Llama 3, Mistral, Llava) using `Ollama`.
-*   **Smart Integration**: A custom Open WebUI tool (`kiwix_tool.py`) allows the AI to "read" the offline library and answer questions with citations.
-*   **Local RAG**: Upload private PDFs (manuals, documents) and chat with them using local embeddings.
-*   **Zero-Dependency**: Does not require an internet connection once deployed.
+1. **Install Docker** (The engine that runs the web interface):
+   ```bash
+   # (If you don't have it)
+   curl -fsSL https://get.docker.com | sh
+   docker compose version  # Verify it installed
+   ```
+2. **Install Ollama** (The Brain):
+   ```bash
+   curl -fsSL https://ollama.com/install.sh | sh
+   ```
+3. **Configure Ollama for External Access** (Critical!):
+   By default, Ollama only listens to your computer. We need it to listen to the Docker container.
+   ```bash
+   sudo mkdir -p /etc/systemd/system/ollama.service.d
+   echo '[Service]
+   Environment="OLLAMA_HOST=0.0.0.0"' | sudo tee /etc/systemd/system/ollama.service.d/override.conf
+   sudo systemctl daemon-reload
+   sudo systemctl restart ollama
+   ```
 
-## 🛠️ Tech Stack
+---
 
-*   **Core**: Docker Compose
-*   **AI**: Ollama (Inference), Open WebUI (Interface)
-*   **Knowledge**: Kiwix (ZIM Server)
-*   **Tools**: Python (Search Tool), Rust (Content Processing), Shell (Maintenance)
+## 🧠 Step 2: Download the Brains (Models)
+You need two types of brains: one for smarts, one for reading documents.
 
-## 📂 Repository Structure
+1. **Download the Unrestricted Model** (dolphin-llama3) - won't lecture you on safety:
+   ```bash
+   ollama pull dolphin-llama3
+   ```
+2. **Download the Librarian** (nomic-embed-text) - organizes your PDF manuals:
+   ```bash
+   ollama pull nomic-embed-text
+   ```
 
-*   `docker-compose.yml`: Main deployment definition.
-*   `kiwix_tool.py`: The "Smart Search" tool for Open WebUI.
-*   `download_content.py`: Script to fetch ZIM files from mirrors.
-*   `maintenance/`: Scripts for system health, backups, and content updates.
-*   `tools/`: Helper utilities (deduplication, validation).
+---
 
-## ⚡ Quick Start
+## 📦 Step 3: Install the "Civilization Node"
+Now, set up this repository.
 
-1.  **Deploy Infrastructure**:
-    ```bash
-    docker compose up -d
-    ```
+1. **Configure Environment**:
+   ```bash
+   cp .env.example .env
+   # (Optional) Edit .env if you want to store files on a specific hard drive
+   # Default is /opt/civilization
+   ```
+2. **Create Directories**:
+   ```bash
+   ./setup_env.sh
+   # Say 'y' if it asks for sudo permissions to create folders
+   ```
+3. **Start the Interface**:
+   ```bash
+   docker compose up -d
+   ```
 
-2.  **Download Content**:
-    ```bash
-    # Downloads Wikipedia (WARNING: huge download)
-    python3 download_content.py --path wikipedia
-    ```
+---
 
-3.  **Install AI Tool**:
-    Copy the contents of `kiwix_tool.py` into Open WebUI > Workspace > Tools > "Kiwix Knowledge Retrieval".
+## 📚 Step 4: Download The Knowledge (Internet Archive)
+You need the actual data (Wikipedia, iFixit, etc.). These files are big (100GB+).
 
-4.  **Access**:
-    Open `http://localhost:3000` and start chatting.
+1. **Run the Downloader**:
+   ```bash
+   ./maintenance/list_available_content.sh
+   ```
+   *Follow the on-screen menu to "browse" and "download" ZIM files.*
+2. **Recommended Downloads**:
+   - `wikipedia_en_all_nopic` (Encyclopedic knowledge)
+   - `ifixit_en_all` (Repair guides)
+   - `stackoverflow.com_en_all` (Coding/Engineering help)
+   - `wikisource_en_medicine` (Medical texts)
+   - `chemistry.stackexchange.com` (Chemical processes)
 
-## 📖 Documentation
-*   [Deployment Guide](DEPLOYMENT_GUIDE.md)
-*   [Operations Runbook](OPERATIONS_RUNBOOK.md)
-*   [Kiwix Integration Guide](KIWIX_INTEGRATION_GUIDE.md)
+---
 
-## 🛡️ License
-MIT License.
+## 🚀 Step 5: Use It
+1. **Open your Browser**: [http://localhost:3000](http://localhost:3000)
+2. **Select Model**: Choose `dolphin-llama3` from the top dropdown.
+3. **Connect the Tool** (Required for Wikipedia Access):
+   - Go to **Workspace > Tools**.
+   - Create a new tool named "Kiwix".
+   - **Copy the content of `kiwix_tool.py`** from this repo and paste it there.
+   - Click Save.
+   - **Important**: When you start a New Chat, make sure to toggle the "Kiwix" tool provided in the chat options!
+
+You are now ready. Access confirmed.
+
+## ⚠️ Troubleshooting
+- **AI "No results found"**: Ollama isn't running or isn't listening on 0.0.0.0. Re-run proper config in Step 1.
+- **Library restarting**: A ZIM file might be corrupt. Check `/opt/civilization/library/zims`.
+
+---
+
+# 🇹🇷 Medeniyet Düğümü (Civilization Node)
+**Çevrimdışı Hayatta Kalma ve İstihbarat Sistemi**
+
+Bu sistem size **internet olmadan** çalışan tam otonom bir Yapay Zeka sunar. Güçlü bir LLM'i (beyin), Wikipedia, Mühendislik, Tıp ve Tamir kılavuzlarından oluşan devasa bir çevrimdışı kütüphaneye (bilgi) bağlar.
+
+---
+
+## 🛠️ Adım 1: Ön Hazırlıklar
+Başlamadan önce bir terminal açın (CTRL+ALT+T) ve şu kontrolleri yapın.
+
+1. **Docker Kurulumu** (Arayüzü çalıştıran motor):
+   ```bash
+   # (Eğer yüklü değilse)
+   curl -fsSL https://get.docker.com | sh
+   docker compose version  # Yüklendiğini doğrulayın
+   ```
+2. **Ollama Kurulumu** (Beyin):
+   ```bash
+   curl -fsSL https://ollama.com/install.sh | sh
+   ```
+3. **Ollama'yı Dış Erişime Açma** (Kritik!):
+   Varsayılan olarak Ollama sadece kendi bilgisayarınızı dinler. Docker konteynerinin de ona ulaşabilmesi için bu ayarı yapmalısınız.
+   ```bash
+   sudo mkdir -p /etc/systemd/system/ollama.service.d
+   echo '[Service]
+   Environment="OLLAMA_HOST=0.0.0.0"' | sudo tee /etc/systemd/system/ollama.service.d/override.conf
+   sudo systemctl daemon-reload
+   sudo systemctl restart ollama
+   ```
+
+---
+
+## 🧠 Adım 2: Beyinleri İndirin (Modeller)
+İki türe ihtiyacınız var: Biri zeka için, diğeri dökümanları okumak için.
+
+1. **Kısıtlamasız Modeli İndir** (dolphin-llama3) - Güvenlik dersi vermeden soruları cevaplar:
+   ```bash
+   ollama pull dolphin-llama3
+   ```
+2. **Kütüphaneciyi İndir** (nomic-embed-text) - PDF kılavuzlarınızı organize eder:
+   ```bash
+   ollama pull nomic-embed-text
+   ```
+
+---
+
+## 📦 Adım 3: "Civilization Node" Kurulumu
+Şimdi bu depoyu kurun.
+
+1. **Ortamı Ayarlayın**:
+   ```bash
+   cp .env.example .env
+   # (İsteğe bağlı) Dosyaların nereye kaydedileceğini değiştirmek için .env dosyasını düzenleyin
+   # Varsayılan konum: /opt/civilization
+   ```
+2. **Klasörleri Oluşturun**:
+   ```bash
+   ./setup_env.sh
+   # Klasör oluşturmak için sudo izni isterse 'y' deyin.
+   ```
+3. **Arayüzü Başlatın**:
+   ```bash
+   docker compose up -d
+   ```
+
+---
+
+## 📚 Adım 4: Bilgiyi İndirin (İnternet Arşivi)
+Gerçek veriye ihtiyacınız var (Wikipedia, iFixit, vb.). Bu dosyalar büyüktür (100GB+).
+
+1. **İndiriciyi Çalıştırın**:
+   ```bash
+   ./maintenance/list_available_content.sh
+   ```
+   *Ekranda çıkan menüden ZIM dosyalarını seçip indirin.*
+2. **Önerilen İndirmeler**:
+   - `wikipedia_tr_all_maxi` (Türkçe Vikipedi)
+   - `wikipedia_en_all_nopic` (İngilizce Ansiklopedi - En kapsamlısı)
+   - `ifixit_en_all` (Tamir kılavuzları)
+   - `stackoverflow.com_en_all` (Yazılım/Mühendislik)
+   - `wikisource_en_medicine` (Tıp kitapları)
+   - `chemistry.stackexchange.com` (Kimyasal süreçler)
+
+---
+
+## 🚀 Adım 5: Kullanım
+1. **Tarayıcınızı Açın**: [http://localhost:3000](http://localhost:3000)
+2. **Model Seçin**: Üstteki menüden `dolphin-llama3` seçin.
+3. **Aracı Bağlayın** (Wikipedia Erişimi İçin Gerekli):
+   - **Workspace > Tools** menüsüne gidin.
+   - "Kiwix" adında yeni bir araç oluşturun.
+   - Bu repodaki **`kiwix_tool.py` dosyasının içeriğini kopyalayıp** oraya yapıştırın.
+   - Kaydedin (Save).
+   - **Önemli**: Yeni bir sohbet başlatırken (New Chat), sohbet ayarlarından "Kiwix" aracını aktif ettiğinizden emin olun!
+
+Artık hazırsınız. Erişim onaylandı.
+
+## ⚠️ Sorun Giderme
+- **Yapay Zeka "No results found" diyor**: Ollama çalışmıyor veya 0.0.0.0 adresini dinlemiyor. Adım 1'deki ayarları tekrar yapın.
+- **Kütüphane sürekli yeniden başlıyor**: Bir ZIM dosyası bozuk olabilir. `/opt/civilization/library/zims` içindeki son indirilen dosyayı silin.

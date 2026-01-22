@@ -1,28 +1,7 @@
 version: '3.8'
 
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: civ_ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - /opt/civilization/models:/root/.ollama
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-    networks:
-      - civilization_net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # ollama service removed to use Local Host Ollama (GPU accel)
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
@@ -32,17 +11,14 @@ services:
       - "3000:8080"
     volumes:
       - /opt/civilization/openwebui:/app/backend/data
-      # Ensure PDFs and other large files can be accessed if needed, though usually uploaded via UI
       - /opt/civilization/library/pdfs:/data/pdfs:ro 
     environment:
-      - OLLAMA_BASE_URL=http://civ_ollama:11434
-    depends_on:
-      ollama:
-        condition: service_started
+      # Point to the HOST machine's Ollama
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
     networks:
       - civilization_net
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.17.0.1"
 
   kiwix:
     image: ghcr.io/kiwix/kiwix-serve:latest

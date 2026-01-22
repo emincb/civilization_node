@@ -4,8 +4,14 @@ set -e
 # Civilization Node - Content Ingestion Script
 # Version 1.0
 
-INCOMING_DIR="/opt/civilization/incoming"
-LIBRARY_DIR="/opt/civilization/library"
+# Load Environment Variables
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+CIV_ROOT="${CIV_ROOT:-/opt/civilization}"
+INCOMING_DIR="${CIV_ROOT}/incoming"
+LIBRARY_DIR="${CIV_ROOT}/library"
 
 echo "=== Civilization Node Content Ingestion ==="
 echo "Scanning $INCOMING_DIR..."

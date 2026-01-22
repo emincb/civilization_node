@@ -17,27 +17,53 @@ class Tools:
     class Valves:
         default_zim: str = "wikipedia"
 
+    """
+    title: Kiwix Knowledge Retrieval
+    author: Civilization Node Operator
+    description: Search offline ZIM archives. You MUST provide a 'query'.
+    """
+
     def search_knowledge_base(self, query: str, context: str = "general") -> str:
+        """
+        Search for a topic in the offline library.
+        :param query: The specific search terms (e.g. "Python list comprehension", "Paris population"). CANNOT BE EMPTY.
+        :param context: Choose one of: "general" (Wikipedia), "code" (StackOverflow), "repair" (iFixit), "medical" (WikiMed), "chemistry", "books".
+        :return: The content of the article or an error message.
+        """
+        if not query or not query.strip():
+            return "Error: You called the search tool with an empty query. Please call it again with specific keywords."
+
         # Map context to partial names/keywords in Title
         zim_map = {
             "general": "wikipedia",
-            "code": "stackoverflow",
+            "code": "stack overflow",   # Fixed: 'stackoverflow' -> 'stack overflow' (space)
             "repair": "ifixit",
-            "medical": "medicine",
-            "linux": "archlinux",
+            "medical": "medical",       # Fixed: 'medicine' -> 'medical'
+            "linux": "arch",            # Fixed: 'archlinux' -> 'arch' (broader match)
             "science": "phet",
             "books": "gutenberg"
         }
         
-        # 1. Resolve to the EXACT Book ID from the Server (Parsing XML)
-        target_id = self._resolve_book_id(zim_map.get(context, "wikipedia"))
+        # 1. Try to find a specific match in the map, OR use the context itself as the keyword
+        # e.g. "code" -> "stack overflow", but "gardening" -> "gardening"
+        search_keyword = zim_map.get(context, context)
         
+        # 2. Resolve to the EXACT Book ID from the Server
+        target_id = self._resolve_book_id(search_keyword)
+        
+        # 3. Fallback: If specific library not found, default to Wikipedia main
+        if not target_id and search_keyword != "wikipedia":
+             print(f"DEBUG: Library for '{search_keyword}' not found, falling back to Wikipedia.")
+             target_id = self._resolve_book_id("wikipedia")
+
         if not target_id:
             available = self._get_available_books()
-            return f"Error: No ZIM found matching '{context}'. Available: {available}"
+            return f"Error: No matching ZIM found for '{context}' or 'wikipedia'. Available: {available}"
 
         try:
             # 2. Search
+            # Debug Print
+            print(f"DEBUG: Searching for '{query}' in {target_id}")
             search_url = f"{self.kiwix_host}/search?content={target_id}&pattern={urllib.parse.quote(query)}"
             search_resp = requests.get(search_url, timeout=5)
             
@@ -101,7 +127,8 @@ class Tools:
         except Exception as e:
             return f"System Error: {e}"
 
-    def _resolve_book_id(self, partial_name):
+    def _resolve_book_id(self, partial_name: str) -> str:
+        print(f"DEBUG: Resolving book ID for '{partial_name}'")
         try:
             # Kiwix-serve returns an OPDS Atom feed (XML), not JSON
             r = requests.get(f"{self.kiwix_host}/catalog/v2/entries", timeout=2)

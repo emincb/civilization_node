@@ -8,8 +8,12 @@ from urllib.parse import urljoin
 
 # Config
 BASE_URL = "https://download.kiwix.org/zim/"
-INCOMING_DIR = "/opt/civilization/incoming"
-INGEST_SCRIPT = "/home/emin/Documents/personal/civilization_node/civ_ingest.sh"
+CIV_ROOT = os.getenv("CIV_ROOT", "/opt/civilization")
+INCOMING_DIR = os.path.join(CIV_ROOT, "incoming")
+
+# Determine script location dynamically
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+INGEST_SCRIPT = os.path.join(SCRIPT_DIR, "civ_ingest.sh")
 
 # Safety Thresholds
 WARN_SIZE_GB = 20.0
