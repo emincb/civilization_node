@@ -129,7 +129,7 @@ class Tools:
             text = article_soup.get_text(separator=' ', strip=True)
             
             # 6. Format
-            return f"### QUERY: {query}\n### SOURCE: {target_id}\n### CONTENT:\n{text[:6000]}..."
+            return f"### QUERY: {query}\n<source id=\"{target_id}\">\n{text[:6000]}...\n</source>"
 
         except Exception as e:
             return f"System Error processing '{query}': {e}"
