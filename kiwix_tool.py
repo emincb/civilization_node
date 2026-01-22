@@ -26,26 +26,36 @@ class Tools:
     def search_knowledge_base(self, query: str, context: str = "general") -> str:
         """
         Search for a topic in the offline library.
-        :param query: The specific search terms (e.g. "Python list comprehension", "Paris population"). CANNOT BE EMPTY.
+        :param query: The specific search terms (e.g. "Python list comprehension"). 
+                      Supports multiple queries separated by semicolons (e.g. "radio freq; antenna types").
         :param context: Choose one of: "general" (Wikipedia), "code" (StackOverflow), "repair" (iFixit), "medical" (WikiMed), "chemistry", "books".
-        :return: The content of the article or an error message.
+        :return: The content of the article(s) or an error message.
         """
         if not query or not query.strip():
-            return "Error: You called the search tool with an empty query. Please call it again with specific keywords."
+            return "Error: Empty query."
 
+        # Handle multiple queries separated by ';'
+        sub_queries = [q.strip() for q in query.split(';') if q.strip()]
+        results = []
+
+        for sub_q in sub_queries:
+            results.append(self._perform_single_search(sub_q, context))
+
+        return "\n\n" + ("="*20) + "\n\n".join(results)
+
+    def _perform_single_search(self, query: str, context: str) -> str:
         # Map context to partial names/keywords in Title
         zim_map = {
             "general": "wikipedia",
-            "code": "stack overflow",   # Fixed: 'stackoverflow' -> 'stack overflow' (space)
+            "code": "stack overflow",
             "repair": "ifixit",
-            "medical": "medical",       # Fixed: 'medicine' -> 'medical'
-            "linux": "arch",            # Fixed: 'archlinux' -> 'arch' (broader match)
+            "medical": "medical",
+            "linux": "arch",
             "science": "phet",
             "books": "gutenberg"
         }
         
-        # 1. Try to find a specific match in the map, OR use the context itself as the keyword
-        # e.g. "code" -> "stack overflow", but "gardening" -> "gardening"
+        # 1. Try to find a specific match in the map
         search_keyword = zim_map.get(context, context)
         
         # 2. Resolve to the EXACT Book ID from the Server
@@ -58,11 +68,10 @@ class Tools:
 
         if not target_id:
             available = _get_available_books(self.kiwix_host)
-            return f"Error: No matching ZIM found for '{context}' or 'wikipedia'. Available: {available}"
+            return f"Error: No matching ZIM found for '{context}'. Available: {available}"
 
         try:
             # 2. Search
-            # Debug Print
             print(f"DEBUG: Searching for '{query}' in {target_id}")
             search_url = f"{self.kiwix_host}/search?content={target_id}&pattern={urllib.parse.quote(query)}"
             search_resp = requests.get(search_url, timeout=5)
@@ -83,19 +92,17 @@ class Tools:
                 score = 0
                 href_lower = href.lower()
                 
-                # Criterion A: Query Term Match (The most important)
-                # If searching "Honda Civic Headlight", a link with "Headlight" gets points.
+                # Criterion A: Query Term Match
                 matches = sum(1 for term in query_terms if term in href_lower)
                 score += (matches * 10) 
                 
                 # Criterion B: Content Type Preference
                 if context == "repair":
-                    if "/Guide/" in href: score += 50      # Guides are Gold
-                    if "Replacement" in href: score += 20  # specific action
-                    if "/Device/" in href: score -= 5      # Devices are just lists (backup only)
+                    if "/Guide/" in href: score += 50
+                    if "Replacement" in href: score += 20
+                    if "/Device/" in href: score -= 5
                 
                 # Criterion C: Exact Match / Shortness
-                # Shorter URLs often mean main pages, not obscure sub-pages
                 score -= len(href) * 0.1 
 
                 candidates.append((score, href))
@@ -103,7 +110,7 @@ class Tools:
             if not candidates:
                  return f"No articles found for '{query}' in {target_id}."
 
-            # Sort by score descending (Best first)
+            # Sort by score descending
             candidates.sort(key=lambda x: x[0], reverse=True)
             first_result = candidates[0][1]
             
@@ -122,10 +129,10 @@ class Tools:
             text = article_soup.get_text(separator=' ', strip=True)
             
             # 6. Format
-            return f"### SOURCE: {target_id}\n### CONTENT:\n{text[:6000]}..."
+            return f"### QUERY: {query}\n### SOURCE: {target_id}\n### CONTENT:\n{text[:6000]}..."
 
         except Exception as e:
-            return f"System Error: {e}"
+            return f"System Error processing '{query}': {e}"
 
 def _resolve_book_id(host: str, partial_name: str) -> str:
     print(f"DEBUG: Resolving book ID for '{partial_name}'")
